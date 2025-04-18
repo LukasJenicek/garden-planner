@@ -11,6 +11,8 @@ export const plants = pgTable("plants", {
   color: text("color").notNull(), // color for the plant icon
   growingInfo: text("growing_info").notNull(),
   harvestTime: text("harvest_time").notNull(),
+  spacingCm: integer("spacing_cm").notNull().default(30), // Plant spacing in centimeters
+  diameterCm: integer("diameter_cm").notNull().default(20), // Plant diameter in centimeters
 });
 
 export const insertPlantSchema = createInsertSchema(plants).pick({
@@ -20,6 +22,8 @@ export const insertPlantSchema = createInsertSchema(plants).pick({
   color: true,
   growingInfo: true,
   harvestTime: true,
+  spacingCm: true,
+  diameterCm: true,
 });
 
 // Companion planting relationships

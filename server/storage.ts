@@ -122,56 +122,70 @@ export class MemStorage implements IStorage {
         category: 'vegetable',
         icon: 'circle',
         color: '#E53E3E', // red-600
-        growingInfo: 'Full sun, water regularly, space 18-24" apart. Grows 4-6 feet tall.',
-        harvestTime: '70-85 days from transplant'
+        growingInfo: 'Full sun, water regularly. Grows 4-6 feet tall.',
+        harvestTime: '70-85 days from transplant',
+        spacingCm: 60, // 60 cm spacing between plants
+        diameterCm: 45  // 45 cm plant diameter
       },
       {
         name: 'Carrot',
         category: 'vegetable',
         icon: 'line',
         color: '#ED8936', // orange-500
-        growingInfo: 'Full sun to partial shade, water consistently, space 2-3" apart.',
-        harvestTime: '60-80 days from seed'
+        growingInfo: 'Full sun to partial shade, water consistently.',
+        harvestTime: '60-80 days from seed',
+        spacingCm: 8,  // 8 cm spacing between plants
+        diameterCm: 5  // 5 cm plant diameter
       },
       {
         name: 'Lettuce',
         category: 'vegetable',
         icon: 'leaf',
         color: '#8BC34A', // leaf-green
-        growingInfo: 'Partial shade, water regularly, space 6-8" apart.',
-        harvestTime: '45-60 days from seed'
+        growingInfo: 'Partial shade, water regularly.',
+        harvestTime: '45-60 days from seed',
+        spacingCm: 20, // 20 cm spacing between plants
+        diameterCm: 15 // 15 cm plant diameter
       },
       {
         name: 'Cucumber',
         category: 'vegetable',
         icon: 'rectangle',
         color: '#276749', // green-800
-        growingInfo: 'Full sun, water deeply, space 36-60" apart for vining varieties.',
-        harvestTime: '50-70 days from seed'
+        growingInfo: 'Full sun, water deeply.',
+        harvestTime: '50-70 days from seed',
+        spacingCm: 90, // 90 cm spacing between plants
+        diameterCm: 60 // 60 cm plant diameter for vining varieties
       },
       {
         name: 'Onion',
         category: 'vegetable',
         icon: 'circle',
         color: '#B794F4', // purple-400
-        growingInfo: 'Full sun, regular water, space 4-5" apart.',
-        harvestTime: '90-110 days from transplant'
+        growingInfo: 'Full sun, regular water.',
+        harvestTime: '90-110 days from transplant',
+        spacingCm: 12, // 12 cm spacing between plants
+        diameterCm: 8  // 8 cm plant diameter
       },
       {
         name: 'Bell Pepper',
         category: 'vegetable',
         icon: 'square',
         color: '#C53030', // red-700
-        growingInfo: 'Full sun, consistent moisture, space 18-24" apart.',
-        harvestTime: '60-90 days from transplant'
+        growingInfo: 'Full sun, consistent moisture.',
+        harvestTime: '60-90 days from transplant',
+        spacingCm: 50, // 50 cm spacing between plants
+        diameterCm: 30 // 30 cm plant diameter
       },
       {
         name: 'Basil',
         category: 'herb',
         icon: 'triangle',
         color: '#2F855A', // green-700
-        growingInfo: 'Full sun, moderate water, space 12-18" apart.',
-        harvestTime: '30-60 days from seed for usable leaves'
+        growingInfo: 'Full sun, moderate water.',
+        harvestTime: '30-60 days from seed for usable leaves',
+        spacingCm: 30, // 30 cm spacing between plants
+        diameterCm: 20 // 20 cm plant diameter
       },
       {
         name: 'Mint',
@@ -179,7 +193,9 @@ export class MemStorage implements IStorage {
         icon: 'triangle',
         color: '#38A169', // green-600
         growingInfo: 'Partial shade, regular water, grows aggressively - consider containers.',
-        harvestTime: '30 days from planting for usable leaves'
+        harvestTime: '30 days from planting for usable leaves',
+        spacingCm: 45, // 45 cm spacing between plants (if not contained)
+        diameterCm: 30 // 30 cm plant diameter
       },
       {
         name: 'Rosemary',
@@ -187,7 +203,9 @@ export class MemStorage implements IStorage {
         icon: 'triangle',
         color: '#285E61', // teal-800
         growingInfo: 'Full sun, well-drained soil, drought tolerant once established.',
-        harvestTime: '70-80 days from transplant for usable leaves'
+        harvestTime: '70-80 days from transplant for usable leaves',
+        spacingCm: 60, // 60 cm spacing between plants
+        diameterCm: 40 // 40 cm plant diameter (for mature plant)
       },
       {
         name: 'Thyme',
@@ -195,7 +213,9 @@ export class MemStorage implements IStorage {
         icon: 'triangle',
         color: '#319795', // teal-600
         growingInfo: 'Full sun, well-drained soil, drought tolerant.',
-        harvestTime: '40-60 days from planting for usable leaves'
+        harvestTime: '40-60 days from planting for usable leaves',
+        spacingCm: 25, // 25 cm spacing between plants
+        diameterCm: 15 // 15 cm plant diameter
       }
     ];
 
