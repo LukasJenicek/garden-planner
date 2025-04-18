@@ -502,7 +502,11 @@ export default function MainCanvas({
         onZoom={handleZoom}
         onDelete={() => {
           if (selectedPlantId) {
-            onDeletePlant(selectedPlantId.toString());
+            // Find the selected plant instance by plantId
+            const selectedPlant = placedPlants.find(p => p.plantId === selectedPlantId);
+            if (selectedPlant) {
+              onDeletePlant(selectedPlant.id);
+            }
           } else if (selectedBedId) {
             onDeleteBed(selectedBedId);
           }
