@@ -1,91 +1,152 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { z } from "zod";
+import { insertGardenLayoutSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // API routes - prefix all with /api
-  
-  // Get all plants
-  app.get("/api/plants", async (req, res) => {
+  // API routes for plants
+  app.get("/api/plants", async (_req, res) => {
     try {
       const plants = await storage.getAllPlants();
       res.json(plants);
     } catch (error) {
-      console.error("Error fetching plants:", error);
       res.status(500).json({ message: "Failed to fetch plants" });
     }
   });
-  
-  // Get a specific plant by ID
+
   app.get("/api/plants/:id", async (req, res) => {
     try {
-      const plant = await storage.getPlant(parseInt(req.params.id));
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid plant ID" });
+      }
+
+      const plant = await storage.getPlant(id);
       if (!plant) {
         return res.status(404).json({ message: "Plant not found" });
       }
+
       res.json(plant);
     } catch (error) {
-      console.error("Error fetching plant:", error);
       res.status(500).json({ message: "Failed to fetch plant" });
     }
   });
-  
-  // Get all gardens
-  app.get("/api/gardens", async (req, res) => {
+
+  // API routes for companion relationships
+  app.get("/api/companions/:plantId", async (req, res) => {
     try {
-      const gardens = await storage.getAllGardens();
-      res.json(gardens);
-    } catch (error) {
-      console.error("Error fetching gardens:", error);
-      res.status(500).json({ message: "Failed to fetch gardens" });
-    }
-  });
-  
-  // Get a specific garden by ID
-  app.get("/api/gardens/:id", async (req, res) => {
-    try {
-      const garden = await storage.getGarden(parseInt(req.params.id));
-      if (!garden) {
-        return res.status(404).json({ message: "Garden not found" });
+      const plantId = parseInt(req.params.plantId);
+      if (isNaN(plantId)) {
+        return res.status(400).json({ message: "Invalid plant ID" });
       }
-      res.json(garden);
+
+      const relationships = await storage.getCompanionRelationships(plantId);
+      
+      // For each relationship, get the companion plant details
+      const companions = await Promise.all(
+        relationships.map(async (rel) => {
+          const plant = await storage.getPlant(rel.companionId);
+          return {
+            ...rel,
+            plant
+          };
+        })
+      );
+
+      res.json(companions);
     } catch (error) {
-      console.error("Error fetching garden:", error);
-      res.status(500).json({ message: "Failed to fetch garden" });
+      res.status(500).json({ message: "Failed to fetch companion relationships" });
     }
   });
-  
-  // Create or update a garden
-  app.post("/api/gardens", async (req, res) => {
+
+  // API routes for garden layouts
+  app.get("/api/garden-layouts", async (_req, res) => {
     try {
-      const garden = req.body;
-      const result = await storage.saveGarden(garden);
-      res.json(result);
+      const layouts = await storage.getAllGardenLayouts();
+      res.json(layouts);
     } catch (error) {
-      console.error("Error saving garden:", error);
-      res.status(500).json({ message: "Failed to save garden" });
+      res.status(500).json({ message: "Failed to fetch garden layouts" });
     }
   });
-  
-  // Delete a garden
-  app.delete("/api/gardens/:id", async (req, res) => {
+
+  app.get("/api/garden-layouts/:id", async (req, res) => {
     try {
-      await storage.deleteGarden(parseInt(req.params.id));
-      res.status(200).json({ message: "Garden deleted successfully" });
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid layout ID" });
+      }
+
+      const layout = await storage.getGardenLayout(id);
+      if (!layout) {
+        return res.status(404).json({ message: "Garden layout not found" });
+      }
+
+      res.json(layout);
     } catch (error) {
-      console.error("Error deleting garden:", error);
-      res.status(500).json({ message: "Failed to delete garden" });
+      res.status(500).json({ message: "Failed to fetch garden layout" });
     }
   });
-  
-  // Get plant compatibility 
-  app.get("/api/compatibility", async (req, res) => {
+
+  app.post("/api/garden-layouts", async (req, res) => {
     try {
-      const compatibility = await storage.getCompatibilityMatrix();
-      res.json(compatibility);
+      const result = insertGardenLayoutSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid garden layout data", 
+          errors: result.error.errors 
+        });
+      }
+
+      const layout = await storage.createGardenLayout(result.data);
+      res.status(201).json(layout);
     } catch (error) {
-      console.error("Error fetching compatibility matrix:", error);
-      res.status(500).json({ message: "Failed to fetch compatibility data" });
+      res.status(500).json({ message: "Failed to create garden layout" });
+    }
+  });
+
+  app.put("/api/garden-layouts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid layout ID" });
+      }
+
+      const validator = insertGardenLayoutSchema.partial();
+      const result = validator.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid garden layout data", 
+          errors: result.error.errors 
+        });
+      }
+
+      const updatedLayout = await storage.updateGardenLayout(id, result.data);
+      if (!updatedLayout) {
+        return res.status(404).json({ message: "Garden layout not found" });
+      }
+
+      res.json(updatedLayout);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update garden layout" });
+    }
+  });
+
+  app.delete("/api/garden-layouts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid layout ID" });
+      }
+
+      const success = await storage.deleteGardenLayout(id);
+      if (!success) {
+        return res.status(404).json({ message: "Garden layout not found" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete garden layout" });
     }
   });
 

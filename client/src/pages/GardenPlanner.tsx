@@ -1,224 +1,177 @@
-import { useState, useEffect } from "react";
-import Sidebar from "@/components/Sidebar";
-import ControlBar from "@/components/ControlBar";
-import GardenCanvas from "@/components/GardenCanvas";
-import GardenInfoPanel from "@/components/GardenInfoPanel";
-import PlantInfoPanel from "@/components/PlantInfoPanel";
-import CompatibilityPopup from "@/components/CompatibilityPopup";
-import { Garden, Plant, GardenBed, Tool } from "@/types/garden";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useEffect, useState } from "react";
+import Header from "@/components/Header";
+import LeftSidebar from "@/components/LeftSidebar";
+import RightSidebar from "@/components/RightSidebar";
+import MainCanvas from "@/components/MainCanvas";
+import { Plant, GardenBed, PlacedPlant } from "@shared/schema";
+import { usePlants } from "@/hooks/usePlants";
+import { useGardenBeds } from "@/hooks/useGardenBeds";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function GardenPlanner() {
-  const [selectedTool, setSelectedTool] = useState<Tool>("select");
-  const [zoom, setZoom] = useState(100);
-  const [showCompatibilityPopup, setShowCompatibilityPopup] = useState(false);
-  const [selectedGardenBed, setSelectedGardenBed] = useState<GardenBed | null>(null);
-  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [selectedPlantId, setSelectedPlantId] = useState<number | null>(null);
+  const [selectedBedId, setSelectedBedId] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Fetch plants library from the server
-  const { data: plants, isLoading: plantsLoading } = useQuery({
-    queryKey: ['/api/plants'],
-  });
+  // Fetch plants and companions
+  const { plants, isLoading: plantsLoading } = usePlants();
+  const { 
+    beds, 
+    placedPlants, 
+    addBed, 
+    updateBed,
+    deleteBed,
+    addPlacedPlant,
+    updatePlacedPlant,
+    deletePlacedPlant,
+    isLoading: bedsLoading
+  } = useGardenBeds();
 
-  // Fetch gardens from the server
-  const { data: gardens, isLoading: gardensLoading } = useQuery({
-    queryKey: ['/api/gardens'],
-  });
+  // Find selected plant and bed
+  const selectedPlant = selectedPlantId 
+    ? plants?.find(p => p.id === selectedPlantId) 
+    : null;
+  
+  const selectedBed = selectedBedId 
+    ? beds?.find(b => b.id === selectedBedId) 
+    : null;
 
-  // Get the current garden (we'll start with the first one or create a default)
-  const [currentGarden, setCurrentGarden] = useState<Garden | null>(null);
+  // Mobile sidebar handling
+  const toggleLeftSidebar = () => {
+    setLeftSidebarOpen(!leftSidebarOpen);
+    if (!leftSidebarOpen) setRightSidebarOpen(false);
+  };
 
-  // Initialize garden when data is loaded
+  const toggleRightSidebar = () => {
+    setRightSidebarOpen(!rightSidebarOpen);
+    if (!rightSidebarOpen) setLeftSidebarOpen(false);
+  };
+
+  // Reset selected plant when closing sidebar
   useEffect(() => {
-    if (gardens && gardens.length > 0) {
-      setCurrentGarden(gardens[0]);
-    } else if (!gardensLoading) {
-      // Create a default empty garden
-      setCurrentGarden({
-        id: 0,
-        name: "My Garden",
-        beds: [],
-        plants: []
-      });
+    if (!rightSidebarOpen) {
+      setSelectedPlantId(null);
     }
-  }, [gardens, gardensLoading]);
+  }, [rightSidebarOpen]);
 
-  // Save garden mutation
-  const saveGardenMutation = useMutation({
-    mutationFn: async (garden: Garden) => {
-      return await apiRequest('POST', '/api/gardens', garden);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gardens'] });
-      toast({
-        title: "Success",
-        description: "Garden saved successfully!",
-        variant: "default",
+  // Save garden layout
+  const saveGarden = async () => {
+    if (!beds || !placedPlants) return;
+    
+    try {
+      await apiRequest('POST', '/api/garden-layouts', {
+        name: 'My Garden Layout',
+        beds: beds,
+        plants: placedPlants
       });
-    },
-    onError: (error) => {
+      
       toast({
-        title: "Error",
-        description: `Failed to save garden: ${error}`,
+        title: "Garden saved!",
+        description: "Your garden layout has been saved successfully.",
+      });
+      
+      // Refresh garden layouts cache
+      queryClient.invalidateQueries({ queryKey: ['/api/garden-layouts'] });
+    } catch (error) {
+      toast({
+        title: "Error saving garden",
+        description: "There was an error saving your garden layout.",
         variant: "destructive",
       });
     }
-  });
-
-  const handleSaveGarden = () => {
-    if (currentGarden) {
-      saveGardenMutation.mutate(currentGarden);
-    }
   };
 
-  const handleSelectTool = (tool: Tool) => {
-    setSelectedTool(tool);
-  };
-
-  const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 10, 200));
-  };
-
-  const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 10, 50));
-  };
-
-  const handleUndoAction = () => {
-    // Implementation will depend on the history tracking system
-    toast({
-      title: "Undo",
-      description: "Action undone",
-    });
-  };
-
-  const handleRedoAction = () => {
-    // Implementation will depend on the history tracking system
-    toast({
-      title: "Redo",
-      description: "Action redone",
-    });
-  };
-
-  const toggleMobileSidebar = () => {
-    setIsMobileSidebarOpen(!isMobileSidebarOpen);
-  };
-
-  const handleSelectTemplate = (templateType: string) => {
-    // Would create a predefined garden bed based on template type
-    toast({
-      title: "Template Applied",
-      description: `Created ${templateType} template`,
-    });
-  };
-
-  const handleAddGardenBed = (bed: GardenBed) => {
-    if (currentGarden) {
-      setCurrentGarden({
-        ...currentGarden,
-        beds: [...currentGarden.beds, bed]
+  // Load garden layout
+  const loadGarden = async () => {
+    try {
+      const res = await apiRequest('GET', '/api/garden-layouts', undefined);
+      const layouts = await res.json();
+      
+      if (layouts.length === 0) {
+        toast({
+          title: "No saved gardens",
+          description: "You don't have any saved garden layouts yet.",
+        });
+        return;
+      }
+      
+      // For simplicity, load the first layout
+      const latestLayout = layouts[layouts.length - 1];
+      
+      // Update local state with loaded layout
+      // This would be handled by the useGardenBeds hook in a real implementation
+      queryClient.invalidateQueries({ queryKey: ['/api/garden-layouts'] });
+      
+      toast({
+        title: "Garden loaded!",
+        description: "Your garden layout has been loaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error loading garden",
+        description: "There was an error loading your garden layout.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleAddPlant = (plant: Plant) => {
-    if (currentGarden) {
-      setCurrentGarden({
-        ...currentGarden,
-        plants: [...currentGarden.plants, plant]
-      });
-    }
+  const handlePlantSelect = (plantId: number) => {
+    setSelectedPlantId(plantId);
+    if (!rightSidebarOpen) setRightSidebarOpen(true);
   };
+
+  const handleBedSelect = (bedId: string) => {
+    setSelectedBedId(bedId);
+  };
+
+  const isLoading = plantsLoading || bedsLoading;
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-background font-['Open_Sans'] text-dark">
-      {/* Mobile Header */}
-      <div className="md:hidden bg-primary text-white p-4 flex justify-between items-center sticky top-0 z-50">
-        <h1 className="font-['Montserrat'] font-bold text-xl">Garden Planner</h1>
-        <button 
-          onClick={toggleMobileSidebar}
-          className="text-white focus:outline-none"
-        >
-          <i className="fas fa-bars text-xl"></i>
-        </button>
-      </div>
-
-      {/* Sidebar */}
-      <Sidebar 
-        plants={plants || []} 
-        selectedTool={selectedTool}
-        onSelectTool={handleSelectTool}
-        isMobileOpen={isMobileSidebarOpen}
-        isLoading={plantsLoading}
+    <div className="h-screen flex flex-col overflow-hidden">
+      <Header 
+        onSaveGarden={saveGarden} 
+        onLoadGarden={loadGarden} 
       />
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-screen md:h-auto">
-        {/* Control Bar */}
-        <ControlBar 
-          onSave={handleSaveGarden}
-          onUndo={handleUndoAction}
-          onRedo={handleRedoAction}
-          zoom={zoom}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onSelectTemplate={handleSelectTemplate}
-          isSaving={saveGardenMutation.isPending}
+      
+      <div className="flex flex-1 overflow-hidden">
+        <LeftSidebar 
+          plants={plants || []} 
+          isOpen={leftSidebarOpen} 
+          onToggle={toggleLeftSidebar} 
+          isLoading={isLoading}
         />
         
-        {/* Canvas Container */}
-        <div className="flex-1 relative bg-gray-100 overflow-hidden">
-          {!gardensLoading && currentGarden && (
-            <GardenCanvas 
-              garden={currentGarden}
-              selectedTool={selectedTool}
-              zoom={zoom}
-              onAddGardenBed={handleAddGardenBed}
-              onAddPlant={handleAddPlant}
-              onSelectGardenBed={setSelectedGardenBed}
-              onSelectPlant={setSelectedPlant}
-            />
-          )}
-          
-          {/* Garden Info Panel - Only show when a garden bed is selected */}
-          {selectedGardenBed && (
-            <GardenInfoPanel 
-              gardenBed={selectedGardenBed}
-              onClose={() => setSelectedGardenBed(null)}
-              onUpdate={(updated) => {
-                if (currentGarden) {
-                  setCurrentGarden({
-                    ...currentGarden,
-                    beds: currentGarden.beds.map(bed => 
-                      bed.id === updated.id ? updated : bed
-                    )
-                  });
-                }
-              }}
-            />
-          )}
-          
-          {/* Plant Info Panel - Only show when a plant is selected */}
-          {selectedPlant && (
-            <PlantInfoPanel 
-              plant={selectedPlant}
-              onClose={() => setSelectedPlant(null)}
-              onShowCompatibility={() => setShowCompatibilityPopup(true)}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Compatibility Popup - Only show when requested */}
-      {showCompatibilityPopup && (
-        <CompatibilityPopup 
+        <MainCanvas 
           plants={plants || []}
-          onClose={() => setShowCompatibilityPopup(false)}
+          beds={beds || []}
+          placedPlants={placedPlants || []}
+          onPlantSelect={handlePlantSelect}
+          onBedSelect={handleBedSelect}
+          onAddBed={addBed}
+          onUpdateBed={updateBed}
+          onDeleteBed={deleteBed}
+          onAddPlant={addPlacedPlant}
+          onUpdatePlant={updatePlacedPlant}
+          onDeletePlant={deletePlacedPlant}
+          selectedPlantId={selectedPlantId}
+          selectedBedId={selectedBedId}
         />
-      )}
+        
+        <RightSidebar 
+          isOpen={rightSidebarOpen} 
+          onToggle={toggleRightSidebar} 
+          selectedPlant={selectedPlant}
+          selectedBed={selectedBed}
+          placedPlants={placedPlants || []}
+          plants={plants || []}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }

@@ -1,73 +1,88 @@
-import { pgTable, text, serial, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Plants table
+// Plant schema
 export const plants = pgTable("plants", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  scientificName: text("scientific_name").notNull(),
-  category: text("category").notNull(),
-  imageUrl: text("image_url").notNull(),
-  sunRequirement: text("sun_requirement").notNull(),
-  waterNeeds: text("water_needs").notNull(),
-  spacing: text("spacing").notNull(),
+  category: text("category").notNull(), // vegetable, herb, fruit, etc.
+  icon: text("icon").notNull(), // SVG path or icon identifier
+  color: text("color").notNull(), // color for the plant icon
+  growingInfo: text("growing_info").notNull(),
   harvestTime: text("harvest_time").notNull(),
-  goodCompanions: text("good_companions").array().notNull(),
-  badCompanions: text("bad_companions").array().notNull(),
-  description: text("description"),
 });
 
-// Garden beds table
-export const gardenBeds = pgTable("garden_beds", {
+export const insertPlantSchema = createInsertSchema(plants).pick({
+  name: true,
+  category: true,
+  icon: true,
+  color: true,
+  growingInfo: true,
+  harvestTime: true,
+});
+
+// Companion planting relationships
+export const companionRelationships = pgTable("companion_relationships", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  gardenId: integer("garden_id").notNull(),
-  bedData: jsonb("bed_data").notNull(), // Store the shape, size, position as JSON
-  sunExposure: text("sun_exposure"),
-  soilType: text("soil_type"),
+  plantId: integer("plant_id").notNull().references(() => plants.id),
+  companionId: integer("companion_id").notNull().references(() => plants.id),
+  compatibility: text("compatibility").notNull(), // good, bad, neutral
   notes: text("notes"),
 });
 
-// Garden plants table (plants placed in a garden)
-export const gardenPlants = pgTable("garden_plants", {
-  id: serial("id").primaryKey(),
-  gardenId: integer("garden_id").notNull(),
-  plantId: integer("plant_id").notNull(),
-  x: integer("x").notNull(),
-  y: integer("y").notNull(),
-  notes: text("notes"),
+export const insertCompanionRelationshipSchema = createInsertSchema(companionRelationships).pick({
+  plantId: true,
+  companionId: true,
+  compatibility: true,
+  notes: true,
 });
 
-// Gardens table
-export const gardens = pgTable("gardens", {
+// Garden layout schema
+export const gardenLayouts = pgTable("garden_layouts", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  userId: integer("user_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  beds: jsonb("beds").notNull(), // array of garden bed objects with coordinates, dimensions
+  plants: jsonb("plants").notNull(), // array of placed plants with coordinates and references to plant ids
 });
 
-// Define Zod schemas for inserts
-export const insertPlantSchema = createInsertSchema(plants);
-export const insertGardenBedSchema = createInsertSchema(gardenBeds);
-export const insertGardenPlantSchema = createInsertSchema(gardenPlants);
-export const insertGardenSchema = createInsertSchema(gardens);
+export const insertGardenLayoutSchema = createInsertSchema(gardenLayouts).pick({
+  name: true,
+  beds: true,
+  plants: true,
+});
 
-// Define the types for inserts
-export type InsertPlant = z.infer<typeof insertPlantSchema>;
-export type InsertGardenBed = z.infer<typeof insertGardenBedSchema>;
-export type InsertGardenPlant = z.infer<typeof insertGardenPlantSchema>;
-export type InsertGarden = z.infer<typeof insertGardenSchema>;
-
-// Define the types for selects
+// Types
 export type Plant = typeof plants.$inferSelect;
-export type GardenBed = typeof gardenBeds.$inferSelect;
-export type GardenPlant = typeof gardenPlants.$inferSelect;
-export type Garden = typeof gardens.$inferSelect;
+export type InsertPlant = z.infer<typeof insertPlantSchema>;
 
-// Combined garden type for API responses
-export interface CompleteGarden extends Garden {
-  beds: GardenBed[];
-  plants: (GardenPlant & { plant: Plant })[];
-}
+export type CompanionRelationship = typeof companionRelationships.$inferSelect;
+export type InsertCompanionRelationship = z.infer<typeof insertCompanionRelationshipSchema>;
+
+export type GardenLayout = typeof gardenLayouts.$inferSelect;
+export type InsertGardenLayout = z.infer<typeof insertGardenLayoutSchema>;
+
+// Garden Bed Types (used in the frontend and for JSON storage)
+export type BedShape = "rectangle" | "circle" | "polygon";
+
+export type GardenBed = {
+  id: string;
+  shape: BedShape;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  radius?: number;
+  points?: number[];
+  fill: string;
+  stroke: string;
+  name?: string;
+};
+
+export type PlacedPlant = {
+  id: string;
+  plantId: number;
+  x: number;
+  y: number;
+  bedId?: string; // The garden bed this plant is placed in, if any
+};
