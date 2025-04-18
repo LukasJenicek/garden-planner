@@ -8,6 +8,15 @@ import CanvasControls from "./CanvasControls";
 // 1 cm = 2 pixels (adjust as needed for your canvas)
 const CM_TO_PIXEL_RATIO = 2;
 
+// Utility functions for unit conversion
+const pixelsToCm = (pixels: number): number => {
+  return Math.round(pixels / CM_TO_PIXEL_RATIO);
+};
+
+const cmToPixels = (cm: number): number => {
+  return cm * CM_TO_PIXEL_RATIO;
+};
+
 interface MainCanvasProps {
   plants: Plant[];
   beds: GardenBed[];
@@ -965,6 +974,42 @@ export default function MainCanvas({
                   opacity={0.6}
                 />
               )}
+            </Layer>
+            
+            {/* Dimensions labels layer - always on top */}
+            <Layer>
+              {beds.map(bed => {
+                if (bed.id === selectedBedId) {
+                  if (bed.shape === 'rectangle') {
+                    return (
+                      <Text 
+                        key={`dim-${bed.id}`}
+                        x={bed.x + (bed.width || 0) / 2}
+                        y={bed.y - 20}
+                        text={`${pixelsToCm(bed.width || 0)} × ${pixelsToCm(bed.height || 0)} cm`}
+                        fontSize={14}
+                        fill="#333"
+                        align="center"
+                        offsetX={(pixelsToCm(bed.width || 0).toString().length + 7) * 4}
+                      />
+                    );
+                  } else if (bed.shape === 'circle') {
+                    return (
+                      <Text 
+                        key={`dim-${bed.id}`}
+                        x={bed.x}
+                        y={bed.y - (bed.radius || 0) - 20}
+                        text={`Ø ${pixelsToCm(bed.radius ? bed.radius * 2 : 0)} cm`}
+                        fontSize={14}
+                        fill="#333"
+                        align="center"
+                        offsetX={25}
+                      />
+                    );
+                  }
+                }
+                return null;
+              })}
             </Layer>
           </Stage>
         </div>
