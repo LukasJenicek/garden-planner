@@ -48,7 +48,11 @@ export default function PlantInfoPanel({ plant, onClose, onShowCompatibility }: 
             </div>
             <div className="bg-gray-100 p-2 rounded">
               <span className="block font-medium">Spacing</span>
-              {plant.spacing}
+              {plant.spacingCm} cm
+            </div>
+            <div className="bg-gray-100 p-2 rounded">
+              <span className="block font-medium">Diameter</span>
+              {plant.diameterCm} cm
             </div>
             <div className="bg-gray-100 p-2 rounded">
               <span className="block font-medium">Harvest</span>

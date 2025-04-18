@@ -24,7 +24,9 @@ export interface Plant {
   imageUrl: string;
   sunRequirement: string;
   waterNeeds: string;
-  spacing: string;
+  spacing: string;         // Legacy spacing field (text format)
+  spacingCm: number;       // Spacing in centimeters
+  diameterCm: number;      // Plant diameter in centimeters
   harvestTime: string;
   goodCompanions: string[];
   badCompanions: string[];

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, MouseEvent } from "react";
-import { Stage, Layer, Rect, Circle, Line, Group, RegularPolygon, Star, Transformer } from "react-konva";
+import { Stage, Layer, Rect, Circle, Line, Group, RegularPolygon, Star, Transformer, Text } from "react-konva";
 import Konva from "konva";
 import { Plant, GardenBed, PlacedPlant, BedShape } from "@shared/schema";
 import CanvasControls from "./CanvasControls";
