@@ -47,7 +47,6 @@ export default function MainCanvas({
   const [selectedPlantForDrop, setSelectedPlantForDrop] = useState<Plant | null>(null);
   const [draggedPlantPosition, setDraggedPlantPosition] = useState<{ x: number, y: number } | null>(null);
   const [companionLines, setCompanionLines] = useState<{ fromId: string; toId: string; compatibility: string }[]>([]);
-  // We're using SVG-based icons instead of loading external images
   
   // Update container size when window resizes
   useEffect(() => {
@@ -559,11 +558,9 @@ export default function MainCanvas({
                           });
                         }}
                         onContextMenu={(e) => {
-                          // Show delete option on right click
+                          // Delete on right click without confirmation
                           e.evt.preventDefault();
-                          if (window.confirm('Delete this garden bed?')) {
-                            onDeleteBed(bed.id);
-                          }
+                          onDeleteBed(bed.id);
                         }}
                       />
                       
@@ -597,11 +594,9 @@ export default function MainCanvas({
                           });
                         }}
                         onContextMenu={(e) => {
-                          // Show delete option on right click
+                          // Delete on right click without confirmation
                           e.evt.preventDefault();
-                          if (window.confirm('Delete this garden bed?')) {
-                            onDeleteBed(bed.id);
-                          }
+                          onDeleteBed(bed.id);
                         }}
                       />
                       
@@ -647,11 +642,9 @@ export default function MainCanvas({
                           });
                         }}
                         onContextMenu={(e) => {
-                          // Show delete option on right click
+                          // Delete on right click without confirmation
                           e.evt.preventDefault();
-                          if (window.confirm('Delete this garden bed?')) {
-                            onDeleteBed(bed.id);
-                          }
+                          onDeleteBed(bed.id);
                         }}
                       />
                       
@@ -751,11 +744,9 @@ export default function MainCanvas({
                       });
                     }}
                     onContextMenu={(e) => {
-                      // Show a delete option on right-click
+                      // Delete on right click without confirmation
                       e.evt.preventDefault();
-                      if (window.confirm('Delete this plant?')) {
-                        onDeletePlant(plant.id);
-                      }
+                      onDeletePlant(plant.id);
                     }}
                   >
                     {/* Plant compatibility border */}
