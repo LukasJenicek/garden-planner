@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { HexColorPicker } from "react-colorful";
 
 interface CanvasControlsProps {
   activeTool: string;
@@ -21,6 +22,31 @@ export default function CanvasControls({
 }: CanvasControlsProps) {
   const [showFillColorPicker, setShowFillColorPicker] = useState(false);
   const [showBorderColorPicker, setShowBorderColorPicker] = useState(false);
+  const fillPickerRef = useRef<HTMLDivElement>(null);
+  const borderPickerRef = useRef<HTMLDivElement>(null);
+  
+  // Close the color picker when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        fillPickerRef.current && 
+        !fillPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowFillColorPicker(false);
+      }
+      if (
+        borderPickerRef.current && 
+        !borderPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowBorderColorPicker(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const colorOptions = [
     { name: 'Dark Soil', value: '#3E2723' },
@@ -143,20 +169,36 @@ export default function CanvasControls({
         ></div>
         
         {showFillColorPicker && (
-          <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-md shadow-lg z-10">
-            <div className="grid grid-cols-3 gap-1">
-              {colorOptions.map(color => (
-                <div 
-                  key={color.value}
-                  className="w-6 h-6 rounded-md cursor-pointer border border-gray-300 hover:border-gray-600"
-                  style={{ backgroundColor: color.value }}
-                  onClick={() => {
-                    onFillColorChange(color.value);
-                    setShowFillColorPicker(false);
-                  }}
-                  title={color.name}
-                ></div>
-              ))}
+          <div 
+            ref={fillPickerRef} 
+            className="color-picker-popup z-50"
+            style={{ 
+              position: 'fixed', 
+              top: '50px', 
+              left: '50%', 
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <HexColorPicker 
+              color={fillColor} 
+              onChange={onFillColorChange} 
+            />
+            <div className="mt-2">
+              <div className="text-center mb-2 text-sm font-medium">Preset Colors</div>
+              <div className="grid grid-cols-5 gap-1">
+                {colorOptions.map(color => (
+                  <div 
+                    key={color.value}
+                    className="w-6 h-6 rounded-md cursor-pointer border border-gray-300 hover:border-gray-600"
+                    style={{ backgroundColor: color.value }}
+                    onClick={() => {
+                      onFillColorChange(color.value);
+                      setShowFillColorPicker(false);
+                    }}
+                    title={color.name}
+                  ></div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -172,20 +214,36 @@ export default function CanvasControls({
         ></div>
         
         {showBorderColorPicker && (
-          <div className="absolute top-full left-0 mt-1 p-2 bg-white rounded-md shadow-lg z-10">
-            <div className="grid grid-cols-3 gap-1">
-              {colorOptions.map(color => (
-                <div 
-                  key={color.value}
-                  className="w-6 h-6 rounded-md cursor-pointer border border-gray-300 hover:border-gray-600"
-                  style={{ backgroundColor: color.value }}
-                  onClick={() => {
-                    onBorderColorChange(color.value);
-                    setShowBorderColorPicker(false);
-                  }}
-                  title={color.name}
-                ></div>
-              ))}
+          <div 
+            ref={borderPickerRef} 
+            className="color-picker-popup z-50"
+            style={{ 
+              position: 'fixed', 
+              top: '50px', 
+              left: '50%', 
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <HexColorPicker 
+              color={borderColor} 
+              onChange={onBorderColorChange} 
+            />
+            <div className="mt-2">
+              <div className="text-center mb-2 text-sm font-medium">Preset Colors</div>
+              <div className="grid grid-cols-5 gap-1">
+                {colorOptions.map(color => (
+                  <div 
+                    key={color.value}
+                    className="w-6 h-6 rounded-md cursor-pointer border border-gray-300 hover:border-gray-600"
+                    style={{ backgroundColor: color.value }}
+                    onClick={() => {
+                      onBorderColorChange(color.value);
+                      setShowBorderColorPicker(false);
+                    }}
+                    title={color.name}
+                  ></div>
+                ))}
+              </div>
             </div>
           </div>
         )}
