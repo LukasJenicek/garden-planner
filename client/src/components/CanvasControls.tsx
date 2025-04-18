@@ -53,6 +53,8 @@ export default function CanvasControls({
   }, []);
 
   const colorOptions = [
+    { name: 'White', value: '#FFFFFF' },
+    { name: 'Black', value: '#000000' },
     { name: 'Dark Soil', value: '#3E2723' },
     { name: 'Light Soil', value: '#795548' },
     { name: 'Garden Green', value: '#4CAF50' },

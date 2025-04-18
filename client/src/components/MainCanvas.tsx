@@ -41,8 +41,8 @@ export default function MainCanvas({
   const [tool, setTool] = useState<'select' | 'draw' | 'rectangle' | 'circle' | 'polygon'>('select');
   const [drawingPoints, setDrawingPoints] = useState<number[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [fillColor, setFillColor] = useState('#3E2723'); // dark soil
-  const [borderColor, setBorderColor] = useState('#4CAF50'); // garden green
+  const [fillColor, setFillColor] = useState('#FFFFFF'); // white
+  const [borderColor, setBorderColor] = useState('#000000'); // black
   const [scale, setScale] = useState(1);
   const [selectedPlantForDrop, setSelectedPlantForDrop] = useState<Plant | null>(null);
   const [draggedPlantPosition, setDraggedPlantPosition] = useState<{ x: number, y: number } | null>(null);
