@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, MouseEvent } from "react";
-import { Stage, Layer, Rect, Circle, Line, Group } from "react-konva";
+import { Stage, Layer, Rect, Circle, Line, Group, RegularPolygon, Star } from "react-konva";
 import Konva from "konva";
 import { Plant, GardenBed, PlacedPlant, BedShape } from "@shared/schema";
 import CanvasControls from "./CanvasControls";
@@ -47,6 +47,7 @@ export default function MainCanvas({
   const [selectedPlantForDrop, setSelectedPlantForDrop] = useState<Plant | null>(null);
   const [draggedPlantPosition, setDraggedPlantPosition] = useState<{ x: number, y: number } | null>(null);
   const [companionLines, setCompanionLines] = useState<{ fromId: string; toId: string; compatibility: string }[]>([]);
+  // We're using SVG-based icons instead of loading external images
   
   // Update container size when window resizes
   useEffect(() => {
@@ -102,21 +103,6 @@ export default function MainCanvas({
     setCompanionLines(lines);
   }, [placedPlants]);
 
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (canvasContainerRef.current) {
-        setContainerSize({
-          width: canvasContainerRef.current.clientWidth,
-          height: canvasContainerRef.current.clientHeight
-        });
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   // Draw grid
   const gridSize = 20;
   const gridLines = [];
@@ -146,7 +132,7 @@ export default function MainCanvas({
   }
 
   // Handle mouse down for drawing
-  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleMouseDown = (e: any) => {
     if (tool === 'select') return;
     
     const stage = e.target.getStage();
@@ -165,7 +151,7 @@ export default function MainCanvas({
   };
 
   // Handle mouse move for drawing
-  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleMouseMove = (e: any) => {
     if (!isDrawing) return;
     
     const stage = e.target.getStage();
@@ -339,28 +325,143 @@ export default function MainCanvas({
     }
   };
 
-  // Get plant icon component based on its type
-  const getPlantIconComponent = (type: string, color: string) => {
-    switch (type) {
-      case 'circle':
-        return <Circle radius={10} fill={color} />;
-      case 'line':
-        return <Rect width={4} height={20} fill={color} offsetX={2} offsetY={10} />;
-      case 'triangle':
-        return (
-          <Line
-            points={[0, -10, 10, 10, -10, 10]}
-            closed
-            fill={color}
+  // Get vegetable icon component based on plant type
+  const getVegetableIcon = (plantType: string, isSelected: boolean) => {
+    // Convert to lowercase for easier matching
+    const type = plantType.toLowerCase();
+    
+    // More realistic vegetable icons using shapes
+    if (type.includes('tomato')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Circle radius={10} fill="#e53935" />
+        </Group>
+      );
+    } else if (type.includes('carrot')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <RegularPolygon
+            sides={3}
+            radius={12}
+            fill="#ff7043"
+            rotation={180}
           />
-        );
-      case 'square':
-      case 'rectangle':
-        return <Rect width={16} height={16} fill={color} offsetX={8} offsetY={8} />;
-      case 'leaf':
-        return <Circle radius={10} fill={color} />;
-      default:
-        return <Circle radius={10} fill={color} />;
+          <Circle radius={3} fill="#66bb6a" y={-12} />
+        </Group>
+      );
+    } else if (type.includes('lettuce') || type.includes('cabbage')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <RegularPolygon
+            sides={12}
+            radius={10}
+            fill="#66bb6a"
+          />
+        </Group>
+      );
+    } else if (type.includes('cucumber')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Rect
+            width={18}
+            height={8}
+            cornerRadius={4}
+            fill="#43a047"
+            offsetX={9}
+            offsetY={4}
+          />
+        </Group>
+      );
+    } else if (type.includes('pepper')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Circle radius={8} fill="#e53935" />
+          <Rect width={3} height={5} fill="#4caf50" offsetX={1.5} offsetY={2.5} y={-10} />
+        </Group>
+      );
+    } else if (type.includes('bean') || type.includes('pea')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Circle radius={3} fill="#7cb342" x={-5} y={-5} />
+          <Circle radius={3} fill="#7cb342" x={0} y={-2} />
+          <Circle radius={3} fill="#7cb342" x={5} y={0} />
+          <Circle radius={3} fill="#7cb342" x={3} y={5} />
+        </Group>
+      );
+    } else if (type.includes('onion')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Circle radius={10} fill="#d1c4e9" />
+        </Group>
+      );
+    } else if (type.includes('potato')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Circle radius={10} fill="#a1887f" />
+        </Group>
+      );
+    } else if (type.includes('corn')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Rect width={6} height={18} fill="#fdd835" offsetX={3} offsetY={9} cornerRadius={3} />
+          <Rect width={3} height={8} fill="#4caf50" offsetX={1.5} offsetY={4} x={-6} y={-8} rotation={-20} />
+          <Rect width={3} height={6} fill="#4caf50" offsetX={1.5} offsetY={3} x={7} y={-7} rotation={20} />
+        </Group>
+      );
+    } else if (type.includes('herb')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Star
+            numPoints={5}
+            innerRadius={5}
+            outerRadius={10}
+            fill="#66bb6a"
+          />
+        </Group>
+      );
+    } else if (type.includes('flower')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Star
+            numPoints={8}
+            innerRadius={5}
+            outerRadius={10}
+            fill="#ffca28"
+          />
+        </Group>
+      );
+    } else if (type.includes('broccoli')) {
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <Circle radius={8} fill="#2e7d32" />
+          <Rect width={4} height={8} fill="#a5d6a7" offsetX={2} offsetY={4} y={8} />
+        </Group>
+      );
+    } else {
+      // Default fallback shape for other vegetables
+      return (
+        <Group>
+          <Circle radius={13} fill={isSelected ? "#FFCC80" : "transparent"} stroke={isSelected ? "#FF9800" : "transparent"} strokeWidth={2} />
+          <RegularPolygon
+            sides={6}
+            radius={10}
+            fill={type.includes('vegetable') ? "#4CAF50" : 
+                  type.includes('herb') ? "#8BC34A" : "#FFC107"}
+          />
+        </Group>
+      );
     }
   };
 
@@ -423,6 +524,13 @@ export default function MainCanvas({
                           y: e.target.y()
                         });
                       }}
+                      onContextMenu={(e) => {
+                        // Show delete option on right click
+                        e.evt.preventDefault();
+                        if (window.confirm('Delete this garden bed?')) {
+                          onDeleteBed(bed.id);
+                        }
+                      }}
                     />
                   );
                 } else if (bed.shape === 'circle') {
@@ -444,6 +552,13 @@ export default function MainCanvas({
                           x: e.target.x(),
                           y: e.target.y()
                         });
+                      }}
+                      onContextMenu={(e) => {
+                        // Show delete option on right click
+                        e.evt.preventDefault();
+                        if (window.confirm('Delete this garden bed?')) {
+                          onDeleteBed(bed.id);
+                        }
                       }}
                     />
                   );
@@ -479,6 +594,13 @@ export default function MainCanvas({
                           points: newPoints
                         });
                       }}
+                      onContextMenu={(e) => {
+                        // Show delete option on right click
+                        e.evt.preventDefault();
+                        if (window.confirm('Delete this garden bed?')) {
+                          onDeleteBed(bed.id);
+                        }
+                      }}
                     />
                   );
                 }
@@ -492,31 +614,24 @@ export default function MainCanvas({
                 
                 if (!fromPlant || !toPlant) return null;
                 
-                let strokeColor = '#8BC34A'; // Default neutral/compatible
-                let strokeWidth = 2;
-                let dashArray = [5, 3];
-                
-                if (line.compatibility === 'good') {
-                  strokeColor = '#43A047'; // Compatible green
-                } else if (line.compatibility === 'warning') {
-                  strokeColor = '#FFC107'; // Warning yellow
-                } else if (line.compatibility === 'bad') {
-                  strokeColor = '#E53935'; // Incompatible red
-                  strokeWidth = 2;
-                }
+                let strokeColor = '#000';
+                if (line.compatibility === 'good') strokeColor = '#43A047';
+                else if (line.compatibility === 'warning') strokeColor = '#FFC107';
+                else if (line.compatibility === 'bad') strokeColor = '#E53935';
                 
                 return (
                   <Line
-                    key={`line-${line.fromId}-${line.toId}`}
+                    key={`${line.fromId}-${line.toId}`}
                     points={[fromPlant.x, fromPlant.y, toPlant.x, toPlant.y]}
                     stroke={strokeColor}
-                    strokeWidth={strokeWidth}
-                    dash={dashArray}
+                    strokeWidth={1}
+                    dash={[5, 5]}
+                    opacity={0.6}
                   />
                 );
               })}
               
-              {/* Placed plants */}
+              {/* Plants */}
               {placedPlants.map(plant => {
                 const plantInfo = plants.find(p => p.id === plant.plantId);
                 if (!plantInfo) return null;
@@ -549,6 +664,9 @@ export default function MainCanvas({
                   }
                 }
                 
+                // Check if we have loaded the images yet
+                const hasImages = Object.keys(plantImages).length > 0;
+                
                 return (
                   <Group
                     key={plant.id}
@@ -569,6 +687,13 @@ export default function MainCanvas({
                         bedId: newBedId
                       });
                     }}
+                    onContextMenu={(e) => {
+                      // Show a delete option on right-click
+                      e.evt.preventDefault();
+                      if (window.confirm('Delete this plant?')) {
+                        onDeletePlant(plant.id);
+                      }
+                    }}
                   >
                     {/* Plant compatibility border */}
                     {borderStyle !== 'transparent' && (
@@ -580,15 +705,8 @@ export default function MainCanvas({
                       />
                     )}
                     
-                    {/* Plant icon */}
-                    <Circle
-                      radius={14}
-                      fill={plantInfo.color}
-                      stroke={isSelected ? '#FF9800' : 'white'}
-                      strokeWidth={isSelected ? 2 : 0}
-                    />
-                    
-                    {getPlantIconComponent(plantInfo.icon, 'white')}
+                    {/* Use custom vegetable icons */}
+                    {getVegetableIcon(plantInfo.name, isSelected)}
                   </Group>
                 );
               })}
@@ -644,7 +762,7 @@ export default function MainCanvas({
                   x={draggedPlantPosition.x}
                   y={draggedPlantPosition.y}
                   radius={14}
-                  fill={selectedPlantForDrop.color}
+                  fill="#4CAF50"
                   opacity={0.6}
                 />
               )}
