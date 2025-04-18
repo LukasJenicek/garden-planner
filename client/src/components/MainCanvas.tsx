@@ -4,6 +4,10 @@ import Konva from "konva";
 import { Plant, GardenBed, PlacedPlant, BedShape } from "@shared/schema";
 import CanvasControls from "./CanvasControls";
 
+// Scaling factor to convert from cm to pixels
+// 1 cm = 2 pixels (adjust as needed for your canvas)
+const CM_TO_PIXEL_RATIO = 2;
+
 interface MainCanvasProps {
   plants: Plant[];
   beds: GardenBed[];
@@ -866,6 +870,16 @@ export default function MainCanvas({
                       onDeletePlant(plant.id);
                     }}
                   >
+                    {/* Plant spacing border (representing actual plant diameter) */}
+                    <Circle
+                      radius={(plantInfo.diameterCm / 2) * CM_TO_PIXEL_RATIO}
+                      fill="transparent"
+                      stroke={isSelected ? "#FF9800" : "#CDCDCD"}
+                      strokeWidth={1}
+                      dash={[5, 5]}
+                      opacity={0.6}
+                    />
+                    
                     {/* Plant compatibility border */}
                     {borderStyle !== 'transparent' && (
                       <Circle
@@ -878,6 +892,18 @@ export default function MainCanvas({
                     
                     {/* Use custom vegetable icons */}
                     {getVegetableIcon(plantInfo.name, isSelected)}
+                    
+                    {/* Plant spacing indicator */}
+                    {isSelected && (
+                      <Circle
+                        radius={(plantInfo.spacingCm / 2) * CM_TO_PIXEL_RATIO}
+                        fill="transparent"
+                        stroke="#4CAF50"
+                        strokeWidth={1}
+                        dash={[3, 3]}
+                        opacity={0.5}
+                      />
+                    )}
                     
 
                   </Group>

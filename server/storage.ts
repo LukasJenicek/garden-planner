@@ -221,7 +221,10 @@ export class MemStorage implements IStorage {
 
     defaultPlants.forEach(plant => {
       const id = this.currentPlantId++;
-      this.plants.set(id, { ...plant, id });
+      // Ensure spacingCm and diameterCm values are set
+      const spacingCm = plant.spacingCm || 30;
+      const diameterCm = plant.diameterCm || 20;
+      this.plants.set(id, { ...plant, id, spacingCm, diameterCm });
     });
   }
 
