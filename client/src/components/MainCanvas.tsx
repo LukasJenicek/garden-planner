@@ -664,8 +664,7 @@ export default function MainCanvas({
                   }
                 }
                 
-                // Check if we have loaded the images yet
-                const hasImages = Object.keys(plantImages).length > 0;
+                // We're now using vector graphics for plant icons
                 
                 return (
                   <Group
