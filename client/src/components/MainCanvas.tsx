@@ -564,13 +564,7 @@ export default function MainCanvas({
                         }}
                       />
                       
-                      {/* Delete button for rectangle garden bed */}
-                      {isSelected && (
-                        <DeleteButton 
-                          position={{ x: bed.x + bed.width! - 10, y: bed.y + 10 }}
-                          onClick={() => onDeleteBed(bed.id)}
-                        />
-                      )}
+
                     </React.Fragment>
                   );
                 } else if (bed.shape === 'circle') {
@@ -600,13 +594,7 @@ export default function MainCanvas({
                         }}
                       />
                       
-                      {/* Delete button for circle garden bed */}
-                      {isSelected && (
-                        <DeleteButton 
-                          position={{ x: bed.x, y: bed.y - bed.radius! - 10 }}
-                          onClick={() => onDeleteBed(bed.id)}
-                        />
-                      )}
+
                     </React.Fragment>
                   );
                 } else if (bed.shape === 'polygon' && bed.points) {
@@ -648,16 +636,7 @@ export default function MainCanvas({
                         }}
                       />
                       
-                      {/* Delete button for polygon garden bed */}
-                      {isSelected && bed.points && bed.points.length >= 2 && (
-                        <DeleteButton 
-                          position={{ 
-                            x: bed.points[0], 
-                            y: bed.points[1] - 20
-                          }}
-                          onClick={() => onDeleteBed(bed.id)}
-                        />
-                      )}
+
                     </React.Fragment>
                   );
                 }
@@ -762,13 +741,7 @@ export default function MainCanvas({
                     {/* Use custom vegetable icons */}
                     {getVegetableIcon(plantInfo.name, isSelected)}
                     
-                    {/* Delete button that appears when selected */}
-                    {isSelected && (
-                      <DeleteButton 
-                        position={{ x: 20, y: -20 }}
-                        onClick={() => onDeletePlant(plant.id)}
-                      />
-                    )}
+
                   </Group>
                 );
               })}
