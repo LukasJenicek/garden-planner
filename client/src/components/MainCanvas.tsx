@@ -501,6 +501,14 @@ export default function MainCanvas({
         onFillColorChange={setFillColor}
         onBorderColorChange={setBorderColor}
         onZoom={handleZoom}
+        onDelete={() => {
+          if (selectedPlantId) {
+            onDeletePlant(selectedPlantId.toString());
+          } else if (selectedBedId) {
+            onDeleteBed(selectedBedId);
+          }
+        }}
+        hasSelection={Boolean(selectedPlantId || selectedBedId)}
       />
       
       <div 
@@ -563,11 +571,7 @@ export default function MainCanvas({
                       {isSelected && (
                         <DeleteButton 
                           position={{ x: bed.x + bed.width! - 10, y: bed.y + 10 }}
-                          onClick={() => {
-                            if (window.confirm('Delete this garden bed?')) {
-                              onDeleteBed(bed.id);
-                            }
-                          }}
+                          onClick={() => onDeleteBed(bed.id)}
                         />
                       )}
                     </React.Fragment>
@@ -605,11 +609,7 @@ export default function MainCanvas({
                       {isSelected && (
                         <DeleteButton 
                           position={{ x: bed.x, y: bed.y - bed.radius! - 10 }}
-                          onClick={() => {
-                            if (window.confirm('Delete this garden bed?')) {
-                              onDeleteBed(bed.id);
-                            }
-                          }}
+                          onClick={() => onDeleteBed(bed.id)}
                         />
                       )}
                     </React.Fragment>
@@ -662,11 +662,7 @@ export default function MainCanvas({
                             x: bed.points[0], 
                             y: bed.points[1] - 20
                           }}
-                          onClick={() => {
-                            if (window.confirm('Delete this garden bed?')) {
-                              onDeleteBed(bed.id);
-                            }
-                          }}
+                          onClick={() => onDeleteBed(bed.id)}
                         />
                       )}
                     </React.Fragment>
