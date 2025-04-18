@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, MouseEvent } from "react";
-import { Stage, Layer, Rect, Circle, Line, Group, RegularPolygon, Star } from "react-konva";
+import { Stage, Layer, Rect, Circle, Line, Group, RegularPolygon, Star, Transformer } from "react-konva";
 import Konva from "konva";
 import { Plant, GardenBed, PlacedPlant, BedShape } from "@shared/schema";
 import CanvasControls from "./CanvasControls";
@@ -542,63 +542,197 @@ export default function MainCanvas({
                 if (bed.shape === 'rectangle') {
                   return (
                     <React.Fragment key={bed.id}>
-                      <Rect
-                        x={bed.x}
-                        y={bed.y}
-                        width={bed.width || 0}
-                        height={bed.height || 0}
-                        fill={bed.fill}
-                        stroke={isSelected ? '#FF9800' : bed.stroke}
-                        strokeWidth={isSelected ? 3 : 2}
-                        cornerRadius={10}
-                        onClick={() => onBedSelect(bed.id)}
-                        onTap={() => onBedSelect(bed.id)}
-                        draggable={tool === 'select'}
-                        onDragEnd={(e) => {
-                          onUpdateBed({
-                            ...bed,
-                            x: e.target.x(),
-                            y: e.target.y()
-                          });
-                        }}
-                        onContextMenu={(e) => {
-                          // Delete on right click without confirmation
-                          e.evt.preventDefault();
-                          onDeleteBed(bed.id);
-                        }}
-                      />
-                      
-
+                      {isSelected && tool === 'select' ? (
+                        <Group>
+                          <Transformer
+                            ref={(node: Konva.Transformer) => {
+                              // Save transformer reference
+                              if (node) {
+                                const shapeNode = node.getStage()!.findOne(`.rect-${bed.id}`);
+                                if (shapeNode) {
+                                  node.nodes([shapeNode]);
+                                  node.getLayer()?.batchDraw();
+                                }
+                              }
+                            }}
+                            boundBoxFunc={(oldBox: any, newBox: any) => {
+                              // Limit minimum size
+                              if (newBox.width < 20 || newBox.height < 20) {
+                                return oldBox;
+                              }
+                              return newBox;
+                            }}
+                            rotateEnabled={false}
+                            enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+                          />
+                          <Rect
+                            className={`rect-${bed.id}`}
+                            x={bed.x}
+                            y={bed.y}
+                            width={bed.width || 0}
+                            height={bed.height || 0}
+                            fill={bed.fill}
+                            stroke={isSelected ? '#FF9800' : bed.stroke}
+                            strokeWidth={isSelected ? 3 : 2}
+                            cornerRadius={10}
+                            onClick={() => onBedSelect(bed.id)}
+                            onTap={() => onBedSelect(bed.id)}
+                            draggable={true}
+                            onDragEnd={(e) => {
+                              onUpdateBed({
+                                ...bed,
+                                x: e.target.x(),
+                                y: e.target.y()
+                              });
+                            }}
+                            onContextMenu={(e) => {
+                              e.evt.preventDefault();
+                              onDeleteBed(bed.id);
+                            }}
+                            onTransform={(e) => {
+                              // When transformed, update the bed size
+                              const node = e.target;
+                              const scaleX = node.scaleX();
+                              const scaleY = node.scaleY();
+                              
+                              // Reset scale and apply to width and height
+                              node.scaleX(1);
+                              node.scaleY(1);
+                              
+                              onUpdateBed({
+                                ...bed,
+                                x: node.x(),
+                                y: node.y(),
+                                width: Math.max(20, node.width() * scaleX),
+                                height: Math.max(20, node.height() * scaleY)
+                              });
+                            }}
+                          />
+                        </Group>
+                      ) : (
+                        <Rect
+                          x={bed.x}
+                          y={bed.y}
+                          width={bed.width || 0}
+                          height={bed.height || 0}
+                          fill={bed.fill}
+                          stroke={isSelected ? '#FF9800' : bed.stroke}
+                          strokeWidth={isSelected ? 3 : 2}
+                          cornerRadius={10}
+                          onClick={() => onBedSelect(bed.id)}
+                          onTap={() => onBedSelect(bed.id)}
+                          draggable={tool === 'select'}
+                          onDragEnd={(e) => {
+                            onUpdateBed({
+                              ...bed,
+                              x: e.target.x(),
+                              y: e.target.y()
+                            });
+                          }}
+                          onContextMenu={(e) => {
+                            e.evt.preventDefault();
+                            onDeleteBed(bed.id);
+                          }}
+                        />
+                      )}
                     </React.Fragment>
                   );
                 } else if (bed.shape === 'circle') {
                   return (
                     <React.Fragment key={bed.id}>
-                      <Circle
-                        x={bed.x}
-                        y={bed.y}
-                        radius={bed.radius || 0}
-                        fill={bed.fill}
-                        stroke={isSelected ? '#FF9800' : bed.stroke}
-                        strokeWidth={isSelected ? 3 : 2}
-                        onClick={() => onBedSelect(bed.id)}
-                        onTap={() => onBedSelect(bed.id)}
-                        draggable={tool === 'select'}
-                        onDragEnd={(e) => {
-                          onUpdateBed({
-                            ...bed,
-                            x: e.target.x(),
-                            y: e.target.y()
-                          });
-                        }}
-                        onContextMenu={(e) => {
-                          // Delete on right click without confirmation
-                          e.evt.preventDefault();
-                          onDeleteBed(bed.id);
-                        }}
-                      />
-                      
-
+                      {isSelected && tool === 'select' ? (
+                        <Group>
+                          <Transformer
+                            ref={(node: Konva.Transformer) => {
+                              // Save transformer reference
+                              if (node) {
+                                const shapeNode = node.getStage()!.findOne(`.circle-${bed.id}`);
+                                if (shapeNode) {
+                                  node.nodes([shapeNode]);
+                                  node.getLayer()?.batchDraw();
+                                }
+                              }
+                            }}
+                            boundBoxFunc={(oldBox: Konva.Box, newBox: Konva.Box) => {
+                              // Limit minimum size
+                              if (newBox.width < 20 || newBox.height < 20) {
+                                return oldBox;
+                              }
+                              return newBox;
+                            }}
+                            rotateEnabled={false}
+                            enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+                          />
+                          <Circle
+                            className={`circle-${bed.id}`}
+                            x={bed.x}
+                            y={bed.y}
+                            radius={bed.radius || 0}
+                            fill={bed.fill}
+                            stroke={isSelected ? '#FF9800' : bed.stroke}
+                            strokeWidth={isSelected ? 3 : 2}
+                            onClick={() => onBedSelect(bed.id)}
+                            onTap={() => onBedSelect(bed.id)}
+                            draggable={true}
+                            onDragEnd={(e) => {
+                              onUpdateBed({
+                                ...bed,
+                                x: e.target.x(),
+                                y: e.target.y()
+                              });
+                            }}
+                            onContextMenu={(e) => {
+                              e.evt.preventDefault();
+                              onDeleteBed(bed.id);
+                            }}
+                            onTransform={(e) => {
+                              // When transformed, update the circle radius
+                              const node = e.target;
+                              const scaleX = node.scaleX();
+                              const scaleY = node.scaleY();
+                              
+                              // Reset scale
+                              node.scaleX(1);
+                              node.scaleY(1);
+                              
+                              // Use average of width and height to determine new radius
+                              const newWidth = node.width() * scaleX;
+                              const newHeight = node.height() * scaleY;
+                              const newRadius = Math.max(10, Math.min(newWidth, newHeight) / 2);
+                              
+                              onUpdateBed({
+                                ...bed,
+                                x: node.x(),
+                                y: node.y(),
+                                radius: newRadius
+                              });
+                            }}
+                          />
+                        </Group>
+                      ) : (
+                        <Circle
+                          x={bed.x}
+                          y={bed.y}
+                          radius={bed.radius || 0}
+                          fill={bed.fill}
+                          stroke={isSelected ? '#FF9800' : bed.stroke}
+                          strokeWidth={isSelected ? 3 : 2}
+                          onClick={() => onBedSelect(bed.id)}
+                          onTap={() => onBedSelect(bed.id)}
+                          draggable={tool === 'select'}
+                          onDragEnd={(e) => {
+                            onUpdateBed({
+                              ...bed,
+                              x: e.target.x(),
+                              y: e.target.y()
+                            });
+                          }}
+                          onContextMenu={(e) => {
+                            e.evt.preventDefault();
+                            onDeleteBed(bed.id);
+                          }}
+                        />
+                      )}
                     </React.Fragment>
                   );
                 } else if (bed.shape === 'polygon' && bed.points) {
