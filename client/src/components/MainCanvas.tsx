@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, MouseEvent } from "react";
+import React, { useRef, useState, useEffect, MouseEvent } from "react";
 import { Stage, Layer, Rect, Circle, Line, Group, RegularPolygon, Star } from "react-konva";
 import Konva from "konva";
 import { Plant, GardenBed, PlacedPlant, BedShape } from "@shared/schema";
@@ -325,6 +325,32 @@ export default function MainCanvas({
     }
   };
 
+  // DeleteButton component
+  const DeleteButton = ({ position, onClick }: { position: { x: number, y: number }, onClick: () => void }) => {
+    return (
+      <Group
+        x={position.x}
+        y={position.y}
+        onClick={(e) => {
+          e.cancelBubble = true;
+          onClick();
+        }}
+      >
+        <Circle radius={10} fill="#e53935" />
+        <Line
+          points={[-4, -4, 4, 4]}
+          stroke="white"
+          strokeWidth={2}
+        />
+        <Line
+          points={[4, -4, -4, 4]}
+          stroke="white"
+          strokeWidth={2}
+        />
+      </Group>
+    );
+  };
+  
   // Get vegetable icon component based on plant type
   const getVegetableIcon = (plantType: string, isSelected: boolean) => {
     // Convert to lowercase for easier matching
@@ -504,104 +530,146 @@ export default function MainCanvas({
                 
                 if (bed.shape === 'rectangle') {
                   return (
-                    <Rect
-                      key={bed.id}
-                      x={bed.x}
-                      y={bed.y}
-                      width={bed.width || 0}
-                      height={bed.height || 0}
-                      fill={bed.fill}
-                      stroke={isSelected ? '#FF9800' : bed.stroke}
-                      strokeWidth={isSelected ? 3 : 2}
-                      cornerRadius={10}
-                      onClick={() => onBedSelect(bed.id)}
-                      onTap={() => onBedSelect(bed.id)}
-                      draggable={tool === 'select'}
-                      onDragEnd={(e) => {
-                        onUpdateBed({
-                          ...bed,
-                          x: e.target.x(),
-                          y: e.target.y()
-                        });
-                      }}
-                      onContextMenu={(e) => {
-                        // Show delete option on right click
-                        e.evt.preventDefault();
-                        if (window.confirm('Delete this garden bed?')) {
-                          onDeleteBed(bed.id);
-                        }
-                      }}
-                    />
+                    <React.Fragment key={bed.id}>
+                      <Rect
+                        x={bed.x}
+                        y={bed.y}
+                        width={bed.width || 0}
+                        height={bed.height || 0}
+                        fill={bed.fill}
+                        stroke={isSelected ? '#FF9800' : bed.stroke}
+                        strokeWidth={isSelected ? 3 : 2}
+                        cornerRadius={10}
+                        onClick={() => onBedSelect(bed.id)}
+                        onTap={() => onBedSelect(bed.id)}
+                        draggable={tool === 'select'}
+                        onDragEnd={(e) => {
+                          onUpdateBed({
+                            ...bed,
+                            x: e.target.x(),
+                            y: e.target.y()
+                          });
+                        }}
+                        onContextMenu={(e) => {
+                          // Show delete option on right click
+                          e.evt.preventDefault();
+                          if (window.confirm('Delete this garden bed?')) {
+                            onDeleteBed(bed.id);
+                          }
+                        }}
+                      />
+                      
+                      {/* Delete button for rectangle garden bed */}
+                      {isSelected && (
+                        <DeleteButton 
+                          position={{ x: bed.x + bed.width! - 10, y: bed.y + 10 }}
+                          onClick={() => {
+                            if (window.confirm('Delete this garden bed?')) {
+                              onDeleteBed(bed.id);
+                            }
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
                   );
                 } else if (bed.shape === 'circle') {
                   return (
-                    <Circle
-                      key={bed.id}
-                      x={bed.x}
-                      y={bed.y}
-                      radius={bed.radius || 0}
-                      fill={bed.fill}
-                      stroke={isSelected ? '#FF9800' : bed.stroke}
-                      strokeWidth={isSelected ? 3 : 2}
-                      onClick={() => onBedSelect(bed.id)}
-                      onTap={() => onBedSelect(bed.id)}
-                      draggable={tool === 'select'}
-                      onDragEnd={(e) => {
-                        onUpdateBed({
-                          ...bed,
-                          x: e.target.x(),
-                          y: e.target.y()
-                        });
-                      }}
-                      onContextMenu={(e) => {
-                        // Show delete option on right click
-                        e.evt.preventDefault();
-                        if (window.confirm('Delete this garden bed?')) {
-                          onDeleteBed(bed.id);
-                        }
-                      }}
-                    />
+                    <React.Fragment key={bed.id}>
+                      <Circle
+                        x={bed.x}
+                        y={bed.y}
+                        radius={bed.radius || 0}
+                        fill={bed.fill}
+                        stroke={isSelected ? '#FF9800' : bed.stroke}
+                        strokeWidth={isSelected ? 3 : 2}
+                        onClick={() => onBedSelect(bed.id)}
+                        onTap={() => onBedSelect(bed.id)}
+                        draggable={tool === 'select'}
+                        onDragEnd={(e) => {
+                          onUpdateBed({
+                            ...bed,
+                            x: e.target.x(),
+                            y: e.target.y()
+                          });
+                        }}
+                        onContextMenu={(e) => {
+                          // Show delete option on right click
+                          e.evt.preventDefault();
+                          if (window.confirm('Delete this garden bed?')) {
+                            onDeleteBed(bed.id);
+                          }
+                        }}
+                      />
+                      
+                      {/* Delete button for circle garden bed */}
+                      {isSelected && (
+                        <DeleteButton 
+                          position={{ x: bed.x, y: bed.y - bed.radius! - 10 }}
+                          onClick={() => {
+                            if (window.confirm('Delete this garden bed?')) {
+                              onDeleteBed(bed.id);
+                            }
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
                   );
                 } else if (bed.shape === 'polygon' && bed.points) {
                   return (
-                    <Line
-                      key={bed.id}
-                      points={bed.points}
-                      fill={bed.fill}
-                      stroke={isSelected ? '#FF9800' : bed.stroke}
-                      strokeWidth={isSelected ? 3 : 2}
-                      closed
-                      onClick={() => onBedSelect(bed.id)}
-                      onTap={() => onBedSelect(bed.id)}
-                      draggable={tool === 'select'}
-                      onDragEnd={(e) => {
-                        // For polygons, we need to update all points
-                        const newPoints = [...bed.points!];
-                        const dx = e.target.x();
-                        const dy = e.target.y();
-                        
-                        // Reset position and return to original spot
-                        e.target.position({ x: 0, y: 0 });
-                        
-                        // Update all points
-                        for (let i = 0; i < newPoints.length; i += 2) {
-                          newPoints[i] += dx;
-                          newPoints[i + 1] += dy;
-                        }
-                        
-                        onUpdateBed({
-                          ...bed,
-                          points: newPoints
-                        });
-                      }}
-                      onContextMenu={(e) => {
-                        // Show delete option on right click
-                        e.evt.preventDefault();
-                        if (window.confirm('Delete this garden bed?')) {
-                          onDeleteBed(bed.id);
-                        }
-                      }}
-                    />
+                    <React.Fragment key={bed.id}>
+                      <Line
+                        points={bed.points}
+                        fill={bed.fill}
+                        stroke={isSelected ? '#FF9800' : bed.stroke}
+                        strokeWidth={isSelected ? 3 : 2}
+                        closed
+                        onClick={() => onBedSelect(bed.id)}
+                        onTap={() => onBedSelect(bed.id)}
+                        draggable={tool === 'select'}
+                        onDragEnd={(e) => {
+                          // For polygons, we need to update all points
+                          const newPoints = [...bed.points!];
+                          const dx = e.target.x();
+                          const dy = e.target.y();
+                          
+                          // Reset position and return to original spot
+                          e.target.position({ x: 0, y: 0 });
+                          
+                          // Update all points
+                          for (let i = 0; i < newPoints.length; i += 2) {
+                            newPoints[i] += dx;
+                            newPoints[i + 1] += dy;
+                          }
+                          
+                          onUpdateBed({
+                            ...bed,
+                            points: newPoints
+                          });
+                        }}
+                        onContextMenu={(e) => {
+                          // Show delete option on right click
+                          e.evt.preventDefault();
+                          if (window.confirm('Delete this garden bed?')) {
+                            onDeleteBed(bed.id);
+                          }
+                        }}
+                      />
+                      
+                      {/* Delete button for polygon garden bed */}
+                      {isSelected && bed.points && bed.points.length >= 2 && (
+                        <DeleteButton 
+                          position={{ 
+                            x: bed.points[0], 
+                            y: bed.points[1] - 20
+                          }}
+                          onClick={() => {
+                            if (window.confirm('Delete this garden bed?')) {
+                              onDeleteBed(bed.id);
+                            }
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
                   );
                 }
                 return null;
@@ -706,13 +774,25 @@ export default function MainCanvas({
                     
                     {/* Use custom vegetable icons */}
                     {getVegetableIcon(plantInfo.name, isSelected)}
+                    
+                    {/* Delete button that appears when selected */}
+                    {isSelected && (
+                      <DeleteButton 
+                        position={{ x: 20, y: -20 }}
+                        onClick={() => {
+                          if (window.confirm('Delete this plant?')) {
+                            onDeletePlant(plant.id);
+                          }
+                        }}
+                      />
+                    )}
                   </Group>
                 );
               })}
               
               {/* Preview of current drawing */}
               {isDrawing && (
-                <>
+                <React.Fragment>
                   {tool === 'rectangle' && drawingPoints.length === 4 && (
                     <Rect
                       x={Math.min(drawingPoints[0], drawingPoints[2])}
@@ -752,7 +832,7 @@ export default function MainCanvas({
                       closed={tool === 'polygon'}
                     />
                   )}
-                </>
+                </React.Fragment>
               )}
               
               {/* Preview of plant being dragged */}
