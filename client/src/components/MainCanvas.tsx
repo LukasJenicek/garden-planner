@@ -653,7 +653,7 @@ export default function MainCanvas({
                                 }
                               }
                             }}
-                            boundBoxFunc={(oldBox: Konva.Box, newBox: Konva.Box) => {
+                            boundBoxFunc={(oldBox: any, newBox: any) => {
                               // Limit minimum size
                               if (newBox.width < 20 || newBox.height < 20) {
                                 return oldBox;
